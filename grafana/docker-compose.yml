@@ -1,0 +1,29 @@
+---
+networks:
+  traefik:
+    external: true
+volumes:
+  grafana-data:
+    driver: local
+services:
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
+      # GF_SERVER_DOMAIN: grafana.danielricklin.fr
+      # GF_SERVER_ROOT_URL: https://grafana.danielricklin.fr
+      # GF_USERS_ALLOW_SIGN_UP: 'true'
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.grafana-https.entrypoints=websecure
+      - traefik.http.routers.grafana-https.rule=Host(`grafana.danielricklin.fr`)
+      - traefik.http.routers.grafana-https.tls=true
+      - traefik.http.routers.grafana-https.tls.certresolver=tls
+      - traefik.http.routers.grafana-https.service=grafana
+      - traefik.http.services.grafana.loadbalancer.server.port=3000
+    networks:
+      - traefik
+    restart: unless-stopped

@@ -1,0 +1,63 @@
+version: '3.9'
+
+# secrets:
+#   ovh_endpoint:
+#     file: "./secrets/ovh_endpoint.secret"
+#   ovh_application_key:
+#     file: "./secrets/ovh_application_key.secret"
+#   ovh_application_secret:
+#     file: "./secrets/ovh_application_secret.secret"
+#   ovh_consumer_key:
+#     file: "./secrets/ovh_consumer_key.secret"
+
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:2.11.0
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - traefik
+    volumes:
+      - ./config/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./config/tls.yml:/etc/traefik/tls.yml:ro
+      - ./config/acme.json:/etc/traefik/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./log:/var/log/traefik
+    environment:
+      - "OVH_ENDPOINT=/run/secrets/ovh_endpoint"
+      - "OVH_APPLICATION_KEY=/run/secrets/ovh_application_key"
+      - "OVH_APPLICATION_SECRET=/run/secrets/ovh_application_secret"
+      - "OVH_CONSUMER_KEY=/run/secrets/ovh_consumer_key"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.rule=Host(`traefik.danielricklin.fr`) # && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      - traefik.http.routers.traefik.tls=true
+      - traefik.http.routers.traefik.tls.certresolver=tls
+      - traefik.http.routers.traefik.tls.domains[0].main=danielricklin.fr
+      - traefik.http.routers.traefik.tls.domains[0].sans=traefik.danielricklin.fr
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.middlewares=authdash
+      - traefik.http.middlewares.authdash.basicauth.users=admin:$$apr1$$LQpYv2c0$$BMDYhWcowA8uuPFc/dKsE.
+  whoami:
+    container_name: whoami
+    image: traefik/whoami:latest
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.whoami.rule=Host(`whoami.danielricklin.fr`)
+      - traefik.http.routers.whoami.entrypoints=websecure
+      - traefik.http.routers.whoami.tls=true
+      - traefik.http.routers.whoami.tls.certresolver=tls
+      - traefik.http.routers.whoami.tls.domains[0].main=danielricklin.fr
+      - traefik.http.routers.whoami.tls.domains[0].sans=whoami.danielricklin.fr
+      - traefik.http.routers.whoami.middlewares=authdash
+      - traefik.http.middlewares.authdash.basicauth.users=admin:$$apr1$$LQpYv2c0$$BMDYhWcowA8uuPFc/dKsE.
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true
