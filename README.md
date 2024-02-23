@@ -1,7 +1,3 @@
-Certainly! Here's the README in English:
-
----
-
 # Homelab Repository
 
 Welcome to my homelab! This repository contains the configuration and scripts needed to set up my home environment with Traefik as a reverse proxy for my Docker containers.
