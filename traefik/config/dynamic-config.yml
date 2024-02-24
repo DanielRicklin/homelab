@@ -5,3 +5,13 @@ http:
       forwardauth:
         address: http://bouncer-traefik:8080/api/v1/forwardAuth
         trustForwardHeader: true
+    ipwhitelist:
+      ipWhiteList:
+        sourceRange:
+          - "127.0.0.1/32"
+          - "192.168.1.0/24"
+        ipStrategy:
+          depth: 0
+    basic-auth:
+      basicAuth:
+        users: "{{ env "AUTHDASH"}}"
