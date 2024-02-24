@@ -1,31 +1,23 @@
 version: '3.9'
 
-# secrets:
-#   ovh_endpoint:
-#     file: "./secrets/ovh_endpoint.secret"
-#   ovh_application_key:
-#     file: "./secrets/ovh_application_key.secret"
-#   ovh_application_secret:
-#     file: "./secrets/ovh_application_secret.secret"
-#   ovh_consumer_key:
-#     file: "./secrets/ovh_consumer_key.secret"
-
 services:
   traefik:
     container_name: traefik
     image: traefik:2.11.0
-    restart: always
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     networks:
-      - traefik
+      - proxy
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - ./config/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./config/tls.yml:/etc/traefik/tls.yml:ro
+      - ./config/dynamic-config.yml:/etc/traefik/dynamic-config.yml:ro
       - ./config/acme.json:/etc/traefik/acme.json
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./log:/var/log/traefik
+      - traefik-logs:/var/log/traefik
     environment:
       - "OVH_ENDPOINT=/run/secrets/ovh_endpoint"
       - "OVH_APPLICATION_KEY=/run/secrets/ovh_application_key"
@@ -34,30 +26,68 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.traefik.entrypoints=websecure
-      - traefik.http.routers.traefik.rule=Host(`traefik.danielricklin.fr`) # && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      - traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`) # && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
       - traefik.http.routers.traefik.tls=true
       - traefik.http.routers.traefik.tls.certresolver=tls
-      - traefik.http.routers.traefik.tls.domains[0].main=danielricklin.fr
-      - traefik.http.routers.traefik.tls.domains[0].sans=traefik.danielricklin.fr
+      - traefik.http.routers.traefik.tls.domains[0].main=${DOMAIN}
+      - traefik.http.routers.traefik.tls.domains[0].sans=traefik.${DOMAIN}
       - traefik.http.routers.traefik.service=api@internal
       - traefik.http.routers.traefik.middlewares=authdash
-      - traefik.http.middlewares.authdash.basicauth.users=admin:$$apr1$$LQpYv2c0$$BMDYhWcowA8uuPFc/dKsE.
+      - traefik.http.middlewares.authdash.basicauth.users=${AUTHDASH}
+    security_opt:
+      - no-new-privileges:true
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    environment:
+      GID: "${GID-1000}"
+      COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik" #crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/sshd
+    depends_on:
+      - 'traefik'
+    volumes:
+      - ./config/acquis.yaml:/etc/crowdsec/acquis.yaml
+      - /etc/localtime:/etc/localtime:ro
+      - crowdsec-db:/var/lib/crowdsec/data/
+      - crowdsec-config:/etc/crowdsec/
+      - traefik-logs:/var/log/traefik/:ro
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+  bouncer-traefik:
+    container_name: bouncer-traefik
+    image: docker.io/fbonalair/traefik-crowdsec-bouncer:latest
+    environment:
+      CROWDSEC_BOUNCER_API_KEY: ${CROWDSEC_BOUNCER_API_KEY}
+      CROWDSEC_AGENT_HOST: crowdsec:8080
+    restart: unless-stopped
+    networks:
+      - proxy
+    depends_on:
+      - crowdsec
   whoami:
     container_name: whoami
     image: traefik/whoami:latest
     labels:
       - traefik.enable=true
-      - traefik.http.routers.whoami.rule=Host(`whoami.danielricklin.fr`)
+      - traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`)
       - traefik.http.routers.whoami.entrypoints=websecure
       - traefik.http.routers.whoami.tls=true
       - traefik.http.routers.whoami.tls.certresolver=tls
-      - traefik.http.routers.whoami.tls.domains[0].main=danielricklin.fr
-      - traefik.http.routers.whoami.tls.domains[0].sans=whoami.danielricklin.fr
+      - traefik.http.routers.whoami.tls.domains[0].main=${DOMAIN}
+      - traefik.http.routers.whoami.tls.domains[0].sans=whoami.${DOMAIN}
       - traefik.http.routers.whoami.middlewares=authdash
-      - traefik.http.middlewares.authdash.basicauth.users=admin:$$apr1$$LQpYv2c0$$BMDYhWcowA8uuPFc/dKsE.
+      - traefik.http.middlewares.authdash.basicauth.users=${AUTHDASH}
     networks:
-      - traefik
+      - proxy
+    security_opt:
+      - no-new-privileges:true
 
 networks:
-  traefik:
+  proxy:
     external: true
+volumes:
+  traefik-logs:
+  crowdsec-db:
+  crowdsec-config:
