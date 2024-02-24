@@ -49,7 +49,6 @@ providers:
     watch: true
     swarmMode: false
     network: proxy
-    # defaultRule: "Host(`{{ lower (trimPrefix `/` .Name )}}.danielricklin.fr`)" 
   file:
     filename: "/etc/traefik/dynamic-config.yml"
     watch: true
