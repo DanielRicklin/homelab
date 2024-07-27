@@ -31,7 +31,7 @@ certificatesResolvers:
       httpChallenge:
         entryPoint: web
 log:
-  level: INFO
+  level: DEBUG
   filepath: /var/log/traefik/traefik.log
 accesslog:
   # format: json  # common, json, logfmt

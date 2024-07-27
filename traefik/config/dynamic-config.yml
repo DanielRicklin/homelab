@@ -12,13 +12,28 @@ http:
       tls:
         certResolver: tls
       service: proxmox
+    forti:
+      entryPoints:
+        - "web"
+        - "websecure"
+      rule: Host(`forti.danielricklin.fr`)
+      middlewares:
+        - https-redirect
+        - default-headers
+      tls:
+        certResolver: tls
+      service: forti
 
   services:
     proxmox:
       loadBalancer:
         servers:
           - url: "https://10.1.192.2:8006"
-          # - url: "https://192.168.1.250:8006"
+        passHostHeader: true
+    forti:
+      loadBalancer:
+        servers:
+          - url: "https://192.168.1.250:40403"
         passHostHeader: true
   
   middlewares:    

@@ -24,7 +24,7 @@ services:
       OVH_APPLICATION_SECRET: /run/secrets/ovh_application_secret
       OVH_CONSUMER_KEY: /run/secrets/ovh_consumer_key
       AUTHDASH: ${AUTHDASH}
-    labels:
+      # labels:
       # - com.centurylinklabs.watchtower.enable=true
       # - traefik.enable=true
       # - traefik.http.routers.traefik.entrypoints=websecure
@@ -46,7 +46,8 @@ services:
       COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/sshd crowdsecurity/base-http-scenarios"
     depends_on:
       - 'traefik'
-    labels: # - com.centurylinklabs.watchtower.enable=true
+    # labels: 
+    # - com.centurylinklabs.watchtower.enable=true
     volumes:
       - ./config/acquis.yaml:/etc/crowdsec/acquis.yaml
       - /etc/localtime:/etc/localtime:ro
@@ -69,7 +70,7 @@ services:
       - proxy
     depends_on:
       - crowdsec
-    labels:
+      # labels:
       # - com.centurylinklabs.watchtower.enable=true
       # whoami:
       #   container_name: whoami
