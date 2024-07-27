@@ -1,5 +1,26 @@
 # https://community.traefik.io/t/setting-up-traefik-for-docker-and-external-services/14151
 http:
+  routers:
+    proxmox:
+      entryPoints:
+        - "web"
+        - "websecure"
+      rule: Host(`proxmox.danielricklin.fr`)
+      middlewares:
+        - https-redirect
+        - default-headers
+      tls:
+        certResolver: tls
+      service: proxmox
+
+  services:
+    proxmox:
+      loadBalancer:
+        servers:
+          - url: "https://10.1.192.2:8006"
+          # - url: "https://192.168.1.250:8006"
+        passHostHeader: true
+  
   middlewares:    
     crowdsec-bouncer:
       forwardauth:
@@ -15,3 +36,19 @@ http:
     basic-auth:
       basicAuth:
         users: "{{ env "AUTHDASH"}}"
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+    default-headers:
+      headers:
+        frameDeny: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 15552000
+        customFrameOptionsValue: SAMEORIGIN
+        customRequestHeaders:
+          X-Forwarded-Proto: https

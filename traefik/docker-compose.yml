@@ -3,7 +3,7 @@ version: '3.9'
 services:
   traefik:
     container_name: traefik
-    image: traefik:2.11.0
+    image: traefik:latest
     restart: unless-stopped
     ports:
       - "80:80"
@@ -25,15 +25,16 @@ services:
       OVH_CONSUMER_KEY: /run/secrets/ovh_consumer_key
       AUTHDASH: ${AUTHDASH}
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.traefik.entrypoints=websecure
-      - traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`) # && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
-      - traefik.http.routers.traefik.tls=true
-      - traefik.http.routers.traefik.tls.certresolver=tls
-      - traefik.http.routers.traefik.tls.domains[0].main=${DOMAIN}
-      - traefik.http.routers.traefik.tls.domains[0].sans=traefik.${DOMAIN}
-      - traefik.http.routers.traefik.service=api@internal
-      - traefik.http.routers.traefik.middlewares=basic-auth@file
+      # - com.centurylinklabs.watchtower.enable=true
+      # - traefik.enable=true
+      # - traefik.http.routers.traefik.entrypoints=websecure
+      # - traefik.http.routers.traefik.rule=Host(`${SUB_DOMAIN}.${DOMAIN}`) # && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+      # - traefik.http.routers.traefik.tls=true
+      # - traefik.http.routers.traefik.tls.certresolver=tls
+      # - traefik.http.routers.traefik.tls.domains[0].main=${DOMAIN}
+      # - traefik.http.routers.traefik.tls.domains[0].sans=${SUB_DOMAIN}.${DOMAIN}
+      # - traefik.http.routers.traefik.service=api@internal
+      # - traefik.http.routers.traefik.middlewares=basic-auth@file
       # - traefik.http.middlewares.authdash.basicauth.users=${AUTHDASH}
     security_opt:
       - no-new-privileges:true
@@ -42,9 +43,10 @@ services:
     container_name: crowdsec
     environment:
       GID: "${GID-1000}"
-      COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/sshd" #
+      COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/sshd crowdsecurity/base-http-scenarios"
     depends_on:
       - 'traefik'
+    labels: # - com.centurylinklabs.watchtower.enable=true
     volumes:
       - ./config/acquis.yaml:/etc/crowdsec/acquis.yaml
       - /etc/localtime:/etc/localtime:ro
@@ -67,22 +69,24 @@ services:
       - proxy
     depends_on:
       - crowdsec
-  whoami:
-    container_name: whoami
-    image: traefik/whoami:latest
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`)
-      - traefik.http.routers.whoami.entrypoints=websecure
-      - traefik.http.routers.whoami.tls=true
-      - traefik.http.routers.whoami.tls.certresolver=tls
-      - traefik.http.routers.whoami.tls.domains[0].main=${DOMAIN}
-      - traefik.http.routers.whoami.tls.domains[0].sans=whoami.${DOMAIN}
-      - traefik.http.routers.whoami.middlewares=basic-auth@file
-    networks:
-      - proxy
-    security_opt:
-      - no-new-privileges:true
+      # - com.centurylinklabs.watchtower.enable=true
+      # whoami:
+      #   container_name: whoami
+      #   image: traefik/whoami:latest
+      #   labels:
+      #     - traefik.enable=true
+      #     - traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`)
+      #     - traefik.http.routers.whoami.entrypoints=websecure
+      #     - traefik.http.routers.whoami.tls=true
+      #     - traefik.http.routers.whoami.tls.certresolver=tls
+      #     - traefik.http.routers.whoami.tls.domains[0].main=${DOMAIN}
+      #     - traefik.http.routers.whoami.tls.domains[0].sans=whoami.${DOMAIN}
+      #     - traefik.http.routers.whoami.middlewares=basic-auth@file
+      #   networks:
+      #     - proxy
+      #   security_opt:
+      #     - no-new-privileges:true
 
 networks:
   proxy:

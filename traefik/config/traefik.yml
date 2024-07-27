@@ -38,7 +38,7 @@ accesslog:
   filePath: /var/log/traefik/access.log
 api:
   insecure: false
-  dashboard: true
+  dashboard: false
   debug: true
 serversTransport:
   insecureSkipVerify: true
