@@ -2,3 +2,7 @@
 acme.json
 *.log
 .env
+mattermost
+semaphore/config
+semaphore/authorized-keys
+semaphore/inventory

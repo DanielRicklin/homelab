@@ -1,0 +1,42 @@
+---
+networks:
+  database:
+    external: true
+  proxy:
+    external: true
+
+services:
+  semaphore:
+    container_name: ansiblesemaphore
+    image: semaphoreui/semaphore:latest
+    user: "${UID}:${GID}"
+    environment:
+      - SEMAPHORE_DB_USER=${SEMAPHORE_DB_USER}
+      - SEMAPHORE_DB_PASS=${SEMAPHORE_DB_PASS} # change!
+      - SEMAPHORE_DB_HOST=mariadb
+      - SEMAPHORE_DB_PORT=3306
+      - SEMAPHORE_DB_DIALECT=mysql
+      - SEMAPHORE_DB=semaphore
+      - SEMAPHORE_PLAYBOOK_PATH=/tmp/semaphore/
+      - SEMAPHORE_ADMIN_PASSWORD=${SEMAPHORE_ADMIN_PASSWORD} # change!
+      - SEMAPHORE_ADMIN_NAME=${SEMAPHORE_ADMIN_NAME}
+      - SEMAPHORE_ADMIN_EMAIL=${SEMAPHORE_ADMIN_EMAIL}
+      - SEMAPHORE_ADMIN=admin
+      - SEMAPHORE_ACCESS_KEY_ENCRYPTION=${SEMAPHORE_ACCESS_KEY_ENCRYPTION} # add to your access key encryption !
+      - ANSIBLE_HOST_KEY_CHECKING=false # (optional) change to true if you want to enable host key checking
+    volumes:
+      - ./inventory/:/inventory:ro
+      - ./authorized-keys/:/authorized-keys:ro
+      - ./config/:/etc/semaphore:rw
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.semaphore-https.entrypoints=websecure
+      - traefik.http.routers.semaphore-https.rule=Host(`${SUB_DOMAIN}.${DOMAIN}`)
+      - traefik.http.routers.semaphore-https.tls=true
+      - traefik.http.routers.semaphore-https.tls.certresolver=tls
+      - traefik.http.routers.semaphore-https.service=semaphore
+      - traefik.http.services.semaphore.loadbalancer.server.port=3000
+    networks:
+      - proxy
+      - database
