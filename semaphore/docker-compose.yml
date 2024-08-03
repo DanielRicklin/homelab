@@ -25,8 +25,9 @@ services:
       - SEMAPHORE_ACCESS_KEY_ENCRYPTION=${SEMAPHORE_ACCESS_KEY_ENCRYPTION} # add to your access key encryption !
       - ANSIBLE_HOST_KEY_CHECKING=false # (optional) change to true if you want to enable host key checking
     volumes:
-      - ./inventory/:/inventory:ro
-      - ./authorized-keys/:/authorized-keys:ro
+      - ./inventory/:/homelab/inventory:ro
+      - ./authorized-keys/:/homelab/authorized-keys:ro
+      - ./playbooks/:/homelab/playbooks:ro
       - ./config/:/etc/semaphore:rw
     restart: unless-stopped
     labels:
