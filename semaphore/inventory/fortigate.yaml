@@ -1,0 +1,7 @@
+---
+all:
+  hosts:
+    fortigate:
+      ansible_host: 192.168.1.250
+      ansible_port: 2020
+      ansible_user: dricklin

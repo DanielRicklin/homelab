@@ -26,6 +26,7 @@ services:
       - ANSIBLE_HOST_KEY_CHECKING=false # (optional) change to true if you want to enable host key checking
     volumes:
       - ./inventory/:/homelab/inventory:ro
+      - ./collection/:/homelab/collection:ro
       - ./authorized-keys/:/homelab/authorized-keys:ro
       - ./playbooks/:/homelab/playbooks:ro
       - ./config/:/etc/semaphore:rw

@@ -1,0 +1,10 @@
+---
+all:
+  hosts:
+    kubernetes:
+      hosts:
+        slave:
+          10.150.192.101:
+          10.150.192.102:
+        master:
+          10.150.192.100:
