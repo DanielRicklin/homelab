@@ -32,6 +32,9 @@ services:
       - traefik.http.routers.nextcloud-https.service=nextcloud
       - traefik.http.services.nextcloud.loadbalancer.server.port=80
       # - com.centurylinklabs.watchtower.enable=true
+    deploy:
+      mode: replicated
+      replicas: 2
     networks:
       - proxy
       - database

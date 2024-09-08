@@ -6,7 +6,7 @@ networks:
 
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:1
+    image: louislam/uptime-kuma:latest
     container_name: uptime-kuma
     restart: unless-stopped
     # ports:
@@ -18,7 +18,7 @@ services:
       - traefik.http.routers.uk-https.tls=true
       - traefik.http.routers.uk-https.tls.certresolver=tls
       - traefik.http.routers.uk-https.service=uk
-      - traefik.http.services.uk.loadbalancer.server.port=3001
+      - traefik.http.services.uk.loadBalancer.server.port=3001
     volumes:
       - uptime-kuma:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
