@@ -1,0 +1,25 @@
+services:
+  drawdb:
+    image: node:20-alpine
+    container_name: drawdb
+    restart: unless-stopped
+    # ports:
+    #   - 5173:5173
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    command: sh -c "npm install && npm run dev -- --host"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.drawdb-https.entrypoints=websecure
+      - traefik.http.routers.drawdb-https.rule=Host(`${SUB_DOMAIN}.${DOMAIN}`)
+      - traefik.http.routers.drawdb-https.tls=true
+      - traefik.http.routers.drawdb-https.tls.certresolver=tls
+      - traefik.http.routers.drawdb-https.service=drawdb
+      - traefik.http.services.drawdb.loadbalancer.server.port=5173
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

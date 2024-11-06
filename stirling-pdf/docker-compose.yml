@@ -1,0 +1,27 @@
+version: '3.3'
+
+networks:
+  proxy:
+    external: true
+
+services:
+  stirling-pdf:
+    image: frooodle/s-pdf:latest
+    restart: unless-stopped
+    volumes:
+      - ./trainingData:/usr/share/tessdata # Required for extra OCR languages
+      - ./extraConfigs:/configs
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+      - INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false
+      - LANGS=fr_FR
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.stirling-https.entrypoints=websecure
+      - traefik.http.routers.stirling-https.rule=Host(`${SUB_DOMAIN}.${DOMAIN}`)
+      - traefik.http.routers.stirling-https.tls=true
+      - traefik.http.routers.stirling-https.tls.certresolver=tls
+      - traefik.http.routers.stirling-https.service=stirling
+      - traefik.http.services.stirling.loadbalancer.server.port=8080
+    networks:
+      - proxy

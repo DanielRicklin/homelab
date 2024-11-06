@@ -5,3 +5,8 @@ acme.json
 mattermost
 semaphore/config
 semaphore/authorized-keys
+node_modules
+stirling-pdf/extraConfigs/
+stirling-pdf/trainingData/
+drawdb/**/*
+!drawdb/compose.yml
