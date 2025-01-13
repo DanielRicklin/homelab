@@ -35,6 +35,11 @@ http:
         servers:
           - url: "https://192.168.1.250:40403"
         passHostHeader: true
+    wazuh:
+      loadBalancer:
+        servers:
+          - url: "https://10.150.192.7:443"
+        passHostHeader: true
   
   middlewares:    
     crowdsec-bouncer:

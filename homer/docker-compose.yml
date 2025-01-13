@@ -1,0 +1,27 @@
+networks:
+  proxy:
+    external: true
+
+services:
+  homer:
+    image: b4bz/homer
+    container_name: homer
+    volumes:
+      - /assets:/www/assets # Make sure your local config directory exists
+    # ports:
+    #   - 8080:8080
+    user: 1001:996 # default
+    environment:
+      - INIT_ASSETS=1 # default, requires the config directory to be writable for the container user (see user option)
+      - IPV6_DISABLE=1
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.homer-https.entrypoints=websecure
+      - traefik.http.routers.homer-https.rule=Host(`${SUB_DOMAIN}.${DOMAIN}`)
+      - traefik.http.routers.homer-https.tls=true
+      - traefik.http.routers.homer-https.tls.certresolver=tls
+      - traefik.http.routers.homer-https.service=homer
+      - traefik.http.services.homer.loadbalancer.server.port=8080
+    networks:
+      - proxy

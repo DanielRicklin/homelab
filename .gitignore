@@ -10,3 +10,6 @@ stirling-pdf/extraConfigs/
 stirling-pdf/trainingData/
 drawdb/**/*
 !drawdb/compose.yml
+qbittorent/appdata/
+qbittorent/downloads/
+homeassistant/config/
