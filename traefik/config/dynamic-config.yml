@@ -23,6 +23,17 @@ http:
       tls:
         certResolver: tls
       service: forti
+    wazuh:
+      entryPoints:
+        - "web"
+        - "websecure"
+      rule: Host(`wazuh.danielricklin.fr`)
+      middlewares:
+        - https-redirect
+        - default-headers
+      tls:
+        certResolver: tls
+      service: wazuh
 
   services:
     proxmox:
